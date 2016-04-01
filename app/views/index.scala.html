@@ -1,15 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Hello</title>
-</head>
-<body>
-    <h1>Twitter Access</h1>
-    <h2>Hash Tag for Search</h2>
-    <form method="get" action="search">
-        <input type="text" name="hashtag" id="hashtag" value=""/>
-        <button type="submit" id="dosearch" name="dosearch">Search</button>
-    </form>
-</body>
-</html>
+@(twitterUser: Option[twitter4j.User])
+@main("") {
+
+@twitterUser match {
+    case Some(user) => {
+        &#64;@user.getScreenName<br/>
+        <img src="@user.getProfileImageURL"/><br/>
+        <a href="/twitterLogout">Logout</a>
+        <form action="search" method="get">
+            <input type="text" id="keyword" name="keyword" value="">
+            <button type="submit" id="search" name="search">Search</button>
+        </form>
+    }
+    case _ => {
+        <a href="/twitterLogin">Login</a>
+    }
+}
+}

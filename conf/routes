@@ -15,3 +15,8 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 GET     /hello                      controllers.HelloController.index
 
 GET     /search                     controllers.TwitterAccessController.search
+
+# Twitter
+GET     /twitterLogin               controllers.TwitterAccessController.twitterLogin
+GET     /twitterOAuthCallback       controllers.TwitterAccessController.twitterOAuthCallback
+GET     /twitterLogout              controllers.TwitterAccessController.twitterLogout
