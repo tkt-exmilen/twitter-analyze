@@ -1,8 +1,13 @@
 package controllers
 
 import javax.inject._
+
 import play.api._
+import play.api.cache._
 import play.api.mvc._
+import twitter4j._
+import twitter4j.auth._
+import play.api.Play.current
 
 /**
  * This controller creates an `Action` to handle HTTP requests to the
@@ -18,7 +23,7 @@ class HomeController @Inject() extends Controller {
    * a path of `/`.
    */
   def index = Action {
-    Ok(views.html.index("Your new application is ready."))
+    Ok(views.html.index(Cache.getAs[User]("twitter_user")))
   }
 
 }
