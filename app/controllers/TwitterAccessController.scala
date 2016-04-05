@@ -5,9 +5,8 @@ import twitter4j._
 import twitter4j.auth._
 import play.api.cache._
 import play.api.Play.current
-import play.api.cache
-import twitter4j.conf.ConfigurationBuilder
-
+import org.json4s._
+import org.json4s.native.JsonMethods
 
 class TwitterAccessController extends Controller {
 
@@ -19,7 +18,10 @@ class TwitterAccessController extends Controller {
     val query: Query = new Query()
     query.setQuery(keyword)
     val result: QueryResult = twitter.search(query)
-    Ok(<p>{result.getTweets().toString()}</p>).as(HTML)
+    val status = result.getTweets().get(0)
+    val json = JsonMethods.parse(TwitterObjectFactory.getRawJSON(status))
+    val text = json \ "text"
+    Ok(<p>{text}</p>).as(HTML)
   }
 
   def twitterLogin = Action { request =>
@@ -42,10 +44,10 @@ class TwitterAccessController extends Controller {
             getRequestToken match {
               case Some(requestToken) => {
                 println(request)
-                var authToken: String = request.queryString.get("oauth_token").get.head
-                var authVerifier: String = request.queryString.get("oauth_verifier").get.head
+                val authToken: String = request.queryString.get("oauth_token").get.head
+                val authVerifier: String = request.queryString.get("oauth_verifier").get.head
                 twitter.getOAuthAccessToken(requestToken, authVerifier)
-                var user: User = twitter.showUser(twitter.getId())
+                val user: User = twitter.showUser(twitter.getId())
                 Cache.set("twitter_user", user, 4320)
                 Cache.set("twitter_authToken", authToken, 4320)
                 Cache.set("twitter_authVerifier", authVerifier, 4320)
@@ -70,3 +72,5 @@ class TwitterAccessController extends Controller {
     Redirect(routes.HomeController.index)
   }
 }
+
+
