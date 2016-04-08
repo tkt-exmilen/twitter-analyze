@@ -1,5 +1,7 @@
 package controllers
 
+import awscala.s3
+import com.amazonaws.services.s3.model.ObjectMetadata
 import play.api.mvc._
 import twitter4j._
 import twitter4j.auth._
@@ -7,6 +9,8 @@ import play.api.cache._
 import play.api.Play.current
 import org.json4s._
 import org.json4s.native.JsonMethods
+import s3._
+import java.io.{ByteArrayInputStream, File, InputStream}
 
 class TwitterAccessController extends Controller {
 
@@ -14,13 +18,39 @@ class TwitterAccessController extends Controller {
 
   def search = Action { request =>
     val params: Map[String, Seq[String]] = request.queryString
-    val keyword = params("keyword").head
+    var keyword = params("keyword").head
+
+    // Twitter Search
     val query: Query = new Query()
+    if (keyword == null || keyword == "") keyword = "ももくろ"
     query.setQuery(keyword)
     val result: QueryResult = twitter.search(query)
     val status = result.getTweets().get(0)
     val json = JsonMethods.parse(TwitterObjectFactory.getRawJSON(status))
     val text = json \ "text"
+
+    // Save to S3
+    val endpoint = System.getProperty("s3.endpoint")
+    val bucketName = System.getProperty("s3.bucketName")
+    implicit val s3: S3 = S3()
+    s3.setEndpoint(endpoint)
+    val buckets: Seq[Bucket] = s3.buckets
+    val optBucket: Option[Bucket] = s3.bucket(bucketName)
+    val key: String = bucketName + "/test"
+    val metadata: ObjectMetadata = new ObjectMetadata()
+    metadata.setContentLength(text.toString.length.toLong)
+    optBucket match {
+      case Some(bucket) =>
+        println(endpoint)
+        println(text)
+        println(bucketName)
+        println(key)
+        bucket.putObject(key, new ByteArrayInputStream(text.toString.getBytes("utf-8")), metadata)
+      case None =>
+        None
+    }
+    println(endpoint)
+
     Ok(<p>{text}</p>).as(HTML)
   }
 
